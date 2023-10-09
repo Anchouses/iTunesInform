@@ -1,6 +1,6 @@
 package com.itunesinform.data.datamodel
 
-data class SearchResult(
+data class SongSearchResult(
     val resultCount: Int,
-    val results: List<Album>
+    val results: List<Song>
 )

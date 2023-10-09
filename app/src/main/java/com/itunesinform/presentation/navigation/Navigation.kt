@@ -1,6 +1,5 @@
 package com.itunesinform.presentation.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
@@ -9,8 +8,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.itunesinform.data.repository.RetrofitRepository
-import com.itunesinform.domain.InteractorModel
+import com.itunesinform.domain.Interactor
 import com.itunesinform.presentation.album_description.AlbumDescriptionScreen
+import com.itunesinform.presentation.album_description.AlbumDescriptionViewModel
 import com.itunesinform.presentation.albumlist.AlbumsListScreen
 import com.itunesinform.presentation.albumlist.AlbumsListViewModel
 
@@ -18,8 +18,10 @@ import com.itunesinform.presentation.albumlist.AlbumsListViewModel
 fun Navigation(){
 
     val retrofitRepository = RetrofitRepository.get()
-    val interactor = InteractorModel(retrofitRepository)
-    val viewModel = AlbumsListViewModel(interactor)
+    val interactor = Interactor(retrofitRepository)
+    val listViewModel = AlbumsListViewModel(interactor)
+    val detailViewModel = AlbumDescriptionViewModel(interactor)
+
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Screen.AlbumsListScreen.route){
@@ -27,21 +29,37 @@ fun Navigation(){
            AlbumsListScreen(
                 modifier = Modifier,
                 navController = navController,
-                viewModel = viewModel
+                viewModel = listViewModel
             )
         }
         composable (
-            route = Screen.AlbumDescriptionScreen.route + "/{index}",
+            route = Screen.AlbumDescriptionScreen.route + "/{id}",
             arguments = listOf(
-                navArgument("index") {
+                navArgument("id") {
                     type = NavType.IntType
                     nullable = false
                 }
             )
         ) { entry ->
-            val index = entry.arguments?.getInt("index")
-            Log.d("Args", index.toString())
-            index?.let { AlbumDescriptionScreen(album = viewModel.result[index], navController) }
+            val albumId = entry.arguments?.getInt("id")
+            val index = listViewModel.result.indexOfFirst{it.collectionId == albumId}
+            if (index != -1) {
+                albumId?.let {
+                    AlbumDescriptionScreen(
+                        album = listViewModel.result[index],
+                        detailViewModel,
+                        navController
+                    )
+                }
+            } else {
+                albumId?.let {
+                    AlbumDescriptionScreen(
+                        album = listViewModel.result[0],
+                        detailViewModel,
+                        navController
+                    )
+                }
+            }
         }
     }
 }

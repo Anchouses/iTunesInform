@@ -1,32 +1,26 @@
 package com.itunesinform.presentation.albumlist
 
 import androidx.lifecycle.ViewModel
-import com.itunesinform.domain.InteractorModel
+import androidx.lifecycle.viewModelScope
+import com.itunesinform.domain.Interactor
 import com.itunesinform.domain.AlbumModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class AlbumsListViewModel(interactorModel: InteractorModel): ViewModel(){
+class AlbumsListViewModel(private val interactor: Interactor): ViewModel(){
 
-    private val interactor = interactorModel
+    var albumId: Int = 0
 
-    var id: Int = 0
-
-    private val _searchText = MutableStateFlow("".replace(" ", "+", ignoreCase = true))
-    var searchText = _searchText.asStateFlow()
+    var searchText = ""
 
     var result = emptyList<AlbumModel>()
 
-    fun onSearchTextChange(text: String){
-        _searchText.value = text
-    }
-
     fun getResult(text: String){
-        CoroutineScope(Dispatchers.IO).launch {
-            result = interactor.getAlbumByArtist(text)
+        viewModelScope.launch {
+            delay(1000L)
+            if (text.length >= 2) {
+                result = interactor.getAlbumByArtist(text)
+            }
         }
     }
 }

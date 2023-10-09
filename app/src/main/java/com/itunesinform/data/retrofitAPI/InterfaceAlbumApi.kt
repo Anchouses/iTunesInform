@@ -1,13 +1,15 @@
 package com.itunesinform.data.retrofitAPI
 
-import com.itunesinform.data.datamodel.SearchResult
-import kotlinx.coroutines.flow.Flow
+import com.itunesinform.data.datamodel.AlbumSearchResult
+import com.itunesinform.data.datamodel.SongSearchResult
 import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface InterfaceAlbumApi {
     @GET("search?entity=album&limit=25")
-    suspend fun getAlbumsByArtist(@Query("term") text: String): SearchResult
-}
+    suspend fun getAlbumsByArtist(@Query("term") text: String): AlbumSearchResult
 
-// https://itunes.apple.com/search?term=mickle+jackson&entity=song&limit=1
+    @GET("search?entity=song")
+    suspend fun getSongsByAlbum(@Query("term") text: String): SongSearchResult
+
+}
