@@ -5,18 +5,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.itunesinform.domain.Interactor
 import com.itunesinform.domain.SongModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 
 class AlbumDescriptionViewModel(private val interactor: Interactor): ViewModel() {
 
-    var searchAlbum = ""
+    private val _songs = MutableStateFlow<List<SongModel>>(emptyList())
+    val songs: StateFlow<List<SongModel>> = _songs
 
-    var result = emptyList<SongModel>()
-
-    fun getResult(text: String){
-        viewModelScope.launch {
-            result = interactor.getSongsByAlbum(text)
+    private var requestJob: Job? = null
+    fun getResult(text: String) {
+        val transText = text.replace(" ", "+")
+        requestJob?.cancel()
+        requestJob = viewModelScope.launch {
+            _songs.value = interactor.getSongsByAlbum(transText)
         }
     }
 
@@ -33,11 +38,12 @@ class AlbumDescriptionViewModel(private val interactor: Interactor): ViewModel()
     }
 
     fun getTime(time: Int): String {
-        val seconds: Int = time / 1000
-        val minutes: Int = seconds / 60
-        val ost: Int = (seconds - (seconds % 60)) / 10
-        val ostStr: String = if ("$ost".length != 1) "$ost" else "0${ost}"
-        return "${minutes}:$ostStr"
+        return if (time == 0) "" else {
+            val seconds: Int = (time / 1000) % 60
+            val minutes: Int = (time / 60000) % 60
+            val sec: String = if ("$seconds".length == 1) "0${seconds}" else "$seconds"
+            "${minutes}:${sec}"
+        }
     }
 }
 

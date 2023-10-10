@@ -2,24 +2,27 @@ package com.itunesinform.presentation.albumlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.itunesinform.domain.Interactor
 import com.itunesinform.domain.AlbumModel
+import com.itunesinform.domain.Interactor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AlbumsListViewModel(private val interactor: Interactor): ViewModel(){
 
-    var albumId: Int = 0
+    private val _albums = MutableStateFlow<List<AlbumModel>>(emptyList())
+    val albums: StateFlow<List<AlbumModel>> = _albums
 
-    var searchText = ""
+    private var requestJob: Job? = null
 
-    var result = emptyList<AlbumModel>()
-
-    fun getResult(text: String){
-        viewModelScope.launch {
+    fun getResult(text: String) {
+        requestJob?.cancel()
+        requestJob = viewModelScope.launch {
             delay(1000L)
-            if (text.length >= 2) {
-                result = interactor.getAlbumByArtist(text)
+            if (text.length >= 3) {
+                _albums.value = interactor.getAlbumByArtist(text)
             }
         }
     }

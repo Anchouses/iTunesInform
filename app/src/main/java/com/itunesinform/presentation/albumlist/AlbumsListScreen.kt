@@ -19,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,6 +40,7 @@ import com.itunesinform.presentation.navigation.Screen
 import com.itunesinform.presentation.theme.Grey
 import com.itunesinform.presentation.theme.GreyBackground
 import com.itunesinform.presentation.theme.ITunesInformTheme
+import com.itunesinform.presentation.theme.Purple80
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,15 +49,17 @@ fun AlbumsListScreen(
     viewModel: AlbumsListViewModel,
     navController: NavController
 ) {
-    ITunesInformTheme(){
+
+    val albumsState = viewModel.albums.collectAsState()
+
+    ITunesInformTheme {
         Column(modifier.fillMaxSize()) {
             val text = remember { mutableStateOf("") }
-
             TextField(
                 value = text.value,
                 onValueChange = { newText ->
                     text.value = newText
-                    viewModel.searchText = text.value
+                    viewModel.getResult(text.value)
                 },
                 modifier
                     .fillMaxWidth()
@@ -73,8 +78,8 @@ fun AlbumsListScreen(
                     disabledTextColor = Color.White,
                     containerColor = Grey,
                     cursorColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White,
+                    focusedLabelColor = Purple80,
+                    unfocusedLabelColor = Purple80,
                     focusedLeadingIconColor = Color.White,
                     unfocusedLeadingIconColor = Color.White,
                     disabledLeadingIconColor = Color.White,
@@ -84,27 +89,12 @@ fun AlbumsListScreen(
                     unfocusedIndicatorColor = GreyBackground,
                     disabledIndicatorColor = Grey,
                     errorIndicatorColor = Grey,
-                    errorLeadingIconColor = Grey,
-                    focusedTrailingIconColor = Color.White,
-                    unfocusedTrailingIconColor = Grey,
-                    disabledTrailingIconColor = Grey,
-                    errorTrailingIconColor = Grey,
-                    disabledLabelColor = Grey,
-                    errorLabelColor = Grey,
-                    disabledPlaceholderColor = Grey,
-                    focusedSupportingTextColor = Color.White,
-                    unfocusedSupportingTextColor = Color.White,
-                    disabledSupportingTextColor = Color.White,
-                    errorSupportingTextColor = Grey
                 )
             )
 
-            viewModel.getResult(text.value)
-
             AlbumsList(
-                list = viewModel.result,
-                navController,
-                viewModel
+                list = albumsState,
+                navController
             )
         }
     }
@@ -112,16 +102,15 @@ fun AlbumsListScreen(
 
 @Composable
 fun AlbumsList(
-    list: List<AlbumModel>,
+    list: State<List<AlbumModel>>,
     navController: NavController,
-    viewModel: AlbumsListViewModel
 ) {
-    LazyColumn() {
-        itemsIndexed(list) { _, item ->
-            viewModel.albumId = item.collectionId
+
+    LazyColumn {
+        itemsIndexed(list.value) { _, item ->
             Item(album = item,
                 navController,
-                viewModel.albumId)
+                item.collectionId)
         }
     }
 }

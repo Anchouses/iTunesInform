@@ -11,19 +11,17 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 class RetrofitRepository private constructor(context: Context) : RepositoryInterface {
 
     private val interceptor = HttpLoggingInterceptor()
+
     init {
         interceptor.level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val client = OkHttpClient
         .Builder()
-        .readTimeout(60L, TimeUnit.SECONDS)
-        .connectTimeout(60L, TimeUnit.SECONDS)
         .addInterceptor(interceptor)
         .build()
 
@@ -37,14 +35,14 @@ class RetrofitRepository private constructor(context: Context) : RepositoryInter
         val result: AlbumSearchResult = api.getAlbumsByArtist(text)
 
         val resultModel: List<AlbumModel> = result.results.map {
-                AlbumModel(
-                    artistName = it.artistName,
-                    artworkUrl100 = it.artworkUrl100,
-                    collectionName = it.collectionName,
-                    collectionId = it.collectionId,
-                    releaseDate = it.releaseDate
-                )
-            }
+            AlbumModel(
+                artistName = it.artistName,
+                artworkUrl100 = it.artworkUrl100,
+                collectionName = it.collectionName,
+                collectionId = it.collectionId,
+                releaseDate = it.releaseDate
+            )
+        }
         return resultModel
     }
 

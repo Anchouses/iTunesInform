@@ -1,5 +1,6 @@
 package com.itunesinform.presentation.album_description
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.CenterEnd
@@ -36,6 +38,8 @@ import com.itunesinform.presentation.navigation.Screen
 import com.itunesinform.presentation.theme.DarkPurple
 import com.itunesinform.presentation.theme.Grey
 
+
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun AlbumDescriptionScreen(
     album: AlbumModel,
@@ -43,11 +47,10 @@ fun AlbumDescriptionScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    viewModel.searchAlbum = album.collectionName.replace(" ", "+")
-    viewModel.getResult(viewModel.searchAlbum)
-    val list = viewModel.result
+    val songs = viewModel.songs.collectAsState()
+    viewModel.getResult(album.collectionName)
 
-    Box(modifier.fillMaxSize()){
+    Box(modifier.fillMaxSize()) {
         Column(
             modifier
                 .padding(8.dp)
@@ -62,7 +65,7 @@ fun AlbumDescriptionScreen(
                         color = Grey,
                         shape = RoundedCornerShape(10.dp)
                     )
-            ){
+            ) {
                 AsyncImage(
                     model = album.artworkUrl100,
                     contentDescription = "Album artwork",
@@ -73,10 +76,10 @@ fun AlbumDescriptionScreen(
                     alignment = Alignment.TopStart
                 )
 
-                Column(horizontalAlignment = Alignment.End){
+                Column(horizontalAlignment = Alignment.End) {
                     Box(
                         modifier = modifier.align(CenterHorizontally)
-                    ){
+                    ) {
                         Text(
                             text = album.collectionName,
                             modifier.padding(4.dp),
@@ -89,7 +92,7 @@ fun AlbumDescriptionScreen(
 
                     Box(
                         modifier = modifier.align(CenterHorizontally)
-                    ){
+                    ) {
                         Text(
                             text = "Release date: ${viewModel.getDate(album.releaseDate)}",
                             modifier.padding(4.dp),
@@ -102,7 +105,7 @@ fun AlbumDescriptionScreen(
 
                     Box(
                         modifier = modifier.align(CenterHorizontally)
-                    ){
+                    ) {
                         Text(
                             text = album.artistName,
                             modifier.padding(4.dp),
@@ -123,14 +126,18 @@ fun AlbumDescriptionScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
-                itemsIndexed(list) {index, item ->
+                itemsIndexed(songs.value) { index, item ->
                     Song(song = item, index = index, viewModel = viewModel)
                 }
             }
         }
 
         Button(
-            onClick = { navController.navigate(Screen.AlbumsListScreen.route) },
+            onClick = {
+                navController.navigate(Screen.AlbumsListScreen.route) {
+                    popUpTo(Screen.AlbumsListScreen.route)
+                }
+            },
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth()
@@ -151,7 +158,12 @@ fun AlbumDescriptionScreen(
 }
 
 @Composable
-fun Song(modifier: Modifier = Modifier, song: SongModel, index: Int, viewModel: AlbumDescriptionViewModel){
+fun Song(
+    modifier: Modifier = Modifier,
+    song: SongModel,
+    index: Int,
+    viewModel: AlbumDescriptionViewModel
+) {
 
     val stringTime: String = viewModel.getTime(song.trackTimeMillis)
 
@@ -161,16 +173,16 @@ fun Song(modifier: Modifier = Modifier, song: SongModel, index: Int, viewModel: 
             .clip(shape = RoundedCornerShape(10.dp))
             .background(color = DarkPurple)
             .padding(4.dp)
-    ){
+    ) {
 
         Box(
             modifier
                 .fillMaxWidth(0.8f)
                 .align(CenterStart)
                 .padding(start = 4.dp)
-        ){
+        ) {
             Text(
-                text = "${index+1}.  ${song.trackName}",
+                text = "${index + 1}.  ${song.trackName}",
                 fontSize = 16.sp,
                 lineHeight = 24.sp,
                 color = Color.White
@@ -183,7 +195,7 @@ fun Song(modifier: Modifier = Modifier, song: SongModel, index: Int, viewModel: 
             modifier
                 .align(CenterEnd)
                 .padding(end = 4.dp)
-        ){
+        ) {
             Text(
                 text = stringTime,
                 modifier.padding(start = 16.dp),
